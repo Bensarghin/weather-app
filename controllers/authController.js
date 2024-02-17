@@ -4,32 +4,28 @@ const jwt = require('jsonwebtoken');
 // handle errors
 const handleErrors = (err) => {
   console.log(err.message, err.code);
-  let errors = { email: '', password: '' };
 
-  // incorrect email
-  if (err.message === 'incorrect email') {
-    errors.email = 'That email is not registered';
-  }
-
-  // incorrect password
-  if (err.message === 'incorrect password') {
-    errors.password = 'That password is incorrect';
-  }
-
-  // duplicate email error
-  if (err.code === 11000) {
-    errors.email = 'that email is already registered';
-    return errors;
-  }
-
+  const errors = { email: '', password: '' };
   // validation errors
   if (err.message.includes('user validation failed')) {
-    // console.log(err);
+    
+    console.log(err);
     Object.values(err.errors).forEach(({ properties }) => {
       // console.log(val);
       // console.log(properties);
       errors[properties.path] = properties.message;
     });
+    
+  }
+
+  // incorrect email
+  if ((err.message === 'incorrect email' || err.message === 'incorrect password')) {
+    errors.email = 'The email or password is invalid';
+  }
+
+  // duplicate email error
+  if (err.code === 11000) {
+    errors.email = 'that email is already registered';
   }
 
   return errors;
@@ -38,19 +34,12 @@ const handleErrors = (err) => {
 // create json web token
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id) => {
-  return jwt.sign({ id }, 'net ninja secret', {
+  return jwt.sign({ id }, 'hamid secret', {
     expiresIn: maxAge
   });
 };
 
 // controller actions
-module.exports.signup_get = (req, res) => {
-  res.render('signup');
-}
-
-module.exports.login_get = (req, res) => {
-  res.render('login');
-}
 
 module.exports.signup_post = async (req, res) => {
   const { email, password } = req.body;
@@ -86,5 +75,5 @@ module.exports.login_post = async (req, res) => {
 
 module.exports.logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
-  res.redirect('/');
+  res.send('ok');
 }
